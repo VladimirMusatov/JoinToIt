@@ -52,6 +52,51 @@ class EmployeesController extends Controller
         }
     }
 
+    public function edit($id)
+    {
+        $employee = Employee::find($id);
+        
+        if (!$employee) {
+            return redirect()->back()->with('error', 'Employee not found.');
+        }
+
+        $companies = Company::select('id', 'name')->get();
+
+        return view('edit-employess', ['employee' => $employee, 'companies' => $companies]);
+    }
+
+    public function update($id, Request $request)
+    {
+        $request->validate([
+            'first_name' => 'required|max:255',
+            'last_name' => 'required|max:255',
+            'email' => 'nullable|email',
+            'company_id' => 'required|exists:companies,id',
+            'phone' => 'nullable|regex:/^\+?[0-9]{10,15}$/',
+        ]);
+    
+        DB::beginTransaction();
+    
+        try {
+            $employee = Employee::findOrFail($id);
+    
+            $employee->first_name = $request->first_name;
+            $employee->last_name = $request->last_name;
+            $employee->email = $request->email;
+            $employee->company_id = $request->company_id;
+            $employee->phone = $request->phone;
+    
+            $employee->save();
+    
+            DB::commit();
+    
+            return redirect()->back()->with('success', 'Employee successfully updated.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->withErrors(['error' => 'An error occurred while updating the employee: ' . $e->getMessage()]);
+        }
+    }
+
     public function delete($id)
     {
         $employee = Employee::find($id);

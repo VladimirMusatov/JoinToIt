@@ -31,6 +31,7 @@
                     <th>Phone</th>
                     <th>Email</th>
                     <th>Company Name</th>
+                    <th>Edit</th>
                     <th>Delete</th>
                 </tr>
             </thead>
@@ -43,7 +44,8 @@
                         <td>{{ $item->phone }}</td>
                         <td>{{ $item->email}}</td>
                         <td>{{$item->company->name}}</td>
-                        <th><a href="{{ route('delete_employee', ['id' => $item->id]) }}"><button class="btn btn-danger">Delete</button></a></th>
+                        <td><a href="{{ route('edit-employee', ['id' => $item->id]) }}"><button class="btn btn-warning">Edit</button></a></td>
+                        <td><a href="{{ route('delete_employee', ['id' => $item->id]) }}"><button class="btn btn-danger">Delete</button></a></td>
                     </tr>
                 @endforeach
             </tbody>
