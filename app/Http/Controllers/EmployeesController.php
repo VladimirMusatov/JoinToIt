@@ -11,9 +11,7 @@ class EmployeesController extends Controller
 {
     public function index()
     {
-        $employees = Employee::with('company')->get();
-
-        return view('employees', compact("employees"));
+        return view('employees');
     }
 
     public function create()
@@ -21,6 +19,44 @@ class EmployeesController extends Controller
         $companies = Company::select(['id', 'name'])->get();
 
         return view('employees_form', compact('companies'));
+    }
+
+    public function getData()
+    {
+        $draw = request('draw');
+        $start = request('start');
+        $length = request('length');
+        $search = request('search')['value'];
+        $orderColumnIndex = request('order')[0]['column'];
+        $orderDirection = request('order')[0]['dir'];
+
+        $columns = [
+            'id', 'first_name', 'last_name', 'phone', 'email', 'company.name'
+        ];
+
+        $query = Employee::with('company');
+
+        if ($search) {
+            $query->where(function($query) use ($search) {
+                $query->where('first_name', 'like', "%$search%")
+                      ->orWhere('last_name', 'like', "%$search%")
+                      ->orWhere('email', 'like', "%$search%")
+                      ->orWhere('phone', 'like', "%$search%");
+            });
+        }
+
+        $query->orderBy($columns[$orderColumnIndex], $orderDirection);
+
+        $recordsTotal = $query->count();
+
+        $employees = $query->offset($start)->limit($length)->get();
+
+        return response()->json([
+            'draw' => $draw,
+            'recordsTotal' => $recordsTotal,
+            'recordsFiltered' => $recordsTotal,
+            'data' => $employees,
+        ]);
     }
 
     public function store(Request $request)

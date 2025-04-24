@@ -36,28 +36,46 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach($employees as $item)
-                    <tr>
-                        <td>{{ $item->id }}</td>
-                        <td>{{ $item->first_name }}</td>
-                        <td>{{ $item->last_name }}</td>
-                        <td>{{ $item->phone }}</td>
-                        <td>{{ $item->email}}</td>
-                        <td>{{$item->company->name}}</td>
-                        <td><a href="{{ route('edit-employee', ['id' => $item->id]) }}"><button class="btn btn-warning">Edit</button></a></td>
-                        <td><a href="{{ route('delete_employee', ['id' => $item->id]) }}"><button class="btn btn-danger">Delete</button></a></td>
-                    </tr>
-                @endforeach
             </tbody>
         </table>
     </div>
 </div>
+
 @endsection
 
 @section('scripts')
     <script>
         $(document).ready(function() {
-            $('#example').DataTable();
+            $('#example').DataTable({
+                "processing": true,        
+                "serverSide": true,       
+                "ajax": {
+                    "url": "{{ route('employees-data') }}",
+                    "type": "GET", 
+                    "dataSrc": function (json) {
+                        console.log(json);
+                        return json.data;
+                    }
+                },
+                "columns": [
+                    { "data": "id" }, 
+                    { "data": "first_name" },
+                    { "data": "last_name" },
+                    { "data": "phone" },
+                    { "data": "email" },
+                    { "data": "company.name" },
+                    { "data": null, "render": function(data, type, row) {
+                        return '<a href="/edit_employee/' + row.id + '"><button class="btn btn-warning">Edit</button></a>';
+                    }},
+                    { "data": null, "render": function(data, type, row) {
+                        return '<a href="/delete_employee/' + row.id + '"><button class="btn btn-danger">Delete</button></a>';
+                    }},
+                ],
+                "pageLength": 10,
+                "lengthChange": false,
+                "ordering": true,
+                "searching": true,
+            });
         });
     </script>
 @endsection

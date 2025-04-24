@@ -5,6 +5,12 @@
 @endsection
 
 @section('content')
+@if (session('success'))
+    <div class="alert alert-success">
+        {{ session('success') }}
+    </div>
+@endif
+
 <div class="row">
     <div class="col-2">
         <a href="{{ route('create-companies') }}">
@@ -28,19 +34,6 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach($companies as $company)
-                    <tr>
-                        <td>{{ $company->id }}</td>
-                        <td>{{ $company->name }}</td>
-                        <td>{{ $company->email }}</td>
-                        <td style="width: 50px; height: 50px;">
-                            <img src="{{ $company->logo_src }}" alt="logo" style="max-width: 100%; max-height: 100%;">
-                        </td>
-                        <td>{{ $company->website }}</td>
-                        <td><a href="{{ route('edit_company', ['id' => $company->id]) }}"><button class="btn btn-warning">Edit</button></a></td>
-                        <td><a href="{{ route('delete_company', ['id' => $company->id]) }}"><button class="btn btn-danger">Delete</button></a></td>
-                    </tr>
-                @endforeach
             </tbody>
         </table>
     </div>
@@ -48,10 +41,40 @@
 @endsection
 
 @section('scripts')
-    <script>
-        $(document).ready(function() {
-            $('#example').DataTable();
-        });
-    </script>
+<script>
+$(document).ready(function() {
+    $('#example').DataTable({
+        "processing": true,        
+        "serverSide": true,       
+        "ajax": {
+            "url": "{{ route('companies-data') }}", 
+            "type": "GET", 
+            "dataSrc": function (json) {
+                console.log(json);
+                return json.data;
+            }
+        },
+        "columns": [
+            { "data": "id" },
+            { "data": "name" },
+            { "data": "email" },
+            { "data": "logo_src", "render": function(data, type, row) {
+                return '<img src="' + data + '" alt="logo" style="max-width: 100%; max-height: 100%;">';
+            }},
+            { "data": "website" },
+            { "data": null, "render": function(data, type, row) {
+                return '<a href="/edit_company/' + row.id + '"><button class="btn btn-warning">Edit</button></a>';
+            }},
+            { "data": null, "render": function(data, type, row) {
+                return '<a href="/delete_company/' + row.id + '"><button class="btn btn-danger">Delete</button></a>';
+            }},
+        ],
+        "pageLength": 10,
+        "lengthChange": false,
+        "ordering": true,
+        "searching": true,
+    });
+});
+</script>
 @endsection
 

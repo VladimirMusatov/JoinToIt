@@ -14,11 +14,46 @@ use App\Mail\NewCompanyNotification;
 
 class CompaniesController extends Controller
 {
-    public function index(Request $request){
+    public function index(){
 
-        $companies = Company::paginate(10);
+        return view('companies');
+    }
 
-        return view('companies', compact('companies'));
+    public function getData(Request $request)
+    {
+        $draw = $request->draw;
+        $start = $request->start;
+        $length = $request->length;
+        $search = $request->search['value'];
+        $orderColumnIndex = $request->order[0]['column']; 
+        $orderDirection = $request->order[0]['dir'];
+
+        $columns = [
+            'id', 'name', 'email', 'logo_src', 'website'
+        ];
+
+        $query = Company::query();
+
+        if ($search) {
+            $query->where(function($query) use ($search) {
+                $query->where('name', 'like', "%$search%")
+                      ->orWhere('email', 'like', "%$search%")
+                      ->orWhere('website', 'like', "%$search%");
+            });
+        }
+
+        $query->orderBy($columns[$orderColumnIndex], $orderDirection);
+
+        $recordsTotal = Company::count();
+
+        $companies = $query->skip($start)->take($length)->get();
+
+        return response()->json([
+            'draw' => $draw,
+            'recordsTotal' => $recordsTotal,
+            'recordsFiltered' => $query->count(),
+            'data' => $companies,
+        ]);
     }
 
     public function create()
