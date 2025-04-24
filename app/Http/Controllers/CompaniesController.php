@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\NewCompanyNotification;
 
 
 class CompaniesController extends Controller
@@ -50,14 +52,21 @@ class CompaniesController extends Controller
             $fullUrl = asset('storage/' . $path);
         }
 
-        Company::create([
+        $company = Company::create([
             'name' => $request->name,
             'email' => $request->email,
             'logo_src' => $fullUrl,
             'website' => $request->website,
         ]);
-
-        return redirect()->back();
+        
+        try {
+            Mail::to('vovamusatov.2001@gmail.com')->send(new NewCompanyNotification($company));
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors(['error' => 'An error occurred while sending the email: ' . $e->getMessage()]);
+        }
+    
+        // Перенаправление с успешным сообщением
+        return redirect()->back()->with('success', 'Company successfully created and email sent.');
     }
 
     public function update($id, Request $request)
