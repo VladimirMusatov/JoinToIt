@@ -58,8 +58,6 @@ class CompaniesController extends Controller
 
     public function create()
     {
-        $route = 'Create Company';
-
         return view('companies_form');
     }
 
@@ -95,12 +93,14 @@ class CompaniesController extends Controller
         ]);
         
         try {
-            Mail::to('vovamusatov.2001@gmail.com')->send(new NewCompanyNotification($company));
+
+            $to_mail = env('TO_MAIL');
+
+            Mail::to($to_mail)->send(new NewCompanyNotification($company));
         } catch (\Exception $e) {
             return redirect()->back()->withErrors(['error' => 'An error occurred while sending the email: ' . $e->getMessage()]);
         }
     
-        // Перенаправление с успешным сообщением
         return redirect()->back()->with('success', 'Company successfully created and email sent.');
     }
 
